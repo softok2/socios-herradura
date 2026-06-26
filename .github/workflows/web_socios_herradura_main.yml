@@ -1,0 +1,31 @@
+name: web_socios_herradura_main-deployment
+on:
+  push:
+    branches:
+      - main
+jobs:
+  Web_Socios_Herradura_Main_Platform_Deployment:
+    runs-on: [ self-hosted, herradura-prod-srv ]
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.event.ref == 'refs/heads/main')
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+    - name: Move Source to Document Root
+      run: |
+        rsync -ar $GITHUB_WORKSPACE/ ${{ secrets.HERRADURA_PARTNERS_DEST_DIR }}  --exclude=".env"  --exclude=".github" --exclude=".git"
+  
+    - name: Send Telegram message
+      env:
+        TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        REPOSITORY: ${{ github.repository }}
+        BRANCH: ${{ github.ref }}
+        USER: ${{ github.actor }}
+        COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+      run: |
+          MESSAGE="<b>SoftOk2 Development Stack Action:</b>%0AJob: <b>'${{ github.job }}'</b> %0AStatus: <b>${{ job.status }}</b>"
+          MESSAGE+="%0A<i>Repository: </i>${REPOSITORY}"
+          MESSAGE+="%0A<i>Branch:</i> ${BRANCH}"
+          MESSAGE+="%0A<i>User:</i> ${USER}"
+          MESSAGE+="%0A<i>Commit Message:</i> ${COMMIT_MESSAGE}"
+          curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" -d "chat_id=${TELEGRAM_CHAT_ID}" -d "text=${MESSAGE}&parse_mode=HTML"
