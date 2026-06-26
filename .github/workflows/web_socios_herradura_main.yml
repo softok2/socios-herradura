@@ -12,7 +12,7 @@ jobs:
       uses: actions/checkout@v3
     - name: Move Source to Document Root
       run: |
-        rsync -ar $GITHUB_WORKSPACE/ ${{ secrets.HERRADURA_PARTNERS_DEST_DIR }}  --exclude=".env"  --exclude=".github" --exclued=".git"
+        rsync -ar $GITHUB_WORKSPACE/ ${{ secrets.HERRADURA_PARTNERS_DEST_DIR }}  --exclude=".env"  --exclude=".github" --exclude=".git"
   
     - name: Send Telegram message
       env:
